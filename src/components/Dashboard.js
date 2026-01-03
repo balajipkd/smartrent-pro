@@ -49,6 +49,11 @@ export class Dashboard {
         </div>
       </div>
 
+      <div class="card mb-4 overflow-x-auto">
+        <h2 class="text-xl mb-4" id="matrix-title">Rent Payment Matrix</h2>
+        <div id="rent-matrix">Loading Matrix...</div>
+      </div>
+
       <div class="card">
         <h2 class="text-xl mb-4">Unit Status (Current Month)</h2>
         <div id="unit-grid" class="flex flex-wrap gap-4">
@@ -70,6 +75,7 @@ export class Dashboard {
         this.container.querySelector('#next-year').addEventListener('click', () => this.changeYear(1));
 
         await this.calculateStats();
+        await this.renderRentMatrix();
         await this.renderUnitGrid();
     }
 
@@ -82,6 +88,7 @@ export class Dashboard {
         this.selectedYear += delta;
         this.container.querySelector('#year-display').textContent = this.getYearDisplay();
         this.calculateStats();
+        this.renderRentMatrix();
     }
 
     getYearDisplay() {
@@ -122,6 +129,130 @@ export class Dashboard {
         this.container.querySelector('#gross-revenue').textContent = this.formatCurrency(gross);
         this.container.querySelector('#total-maintenance').textContent = this.formatCurrency(maint);
         this.container.querySelector('#net-profit').textContent = this.formatCurrency(net);
+    }
+
+    async renderRentMatrix() {
+        // Update Title
+        const titleEl = this.container.querySelector('#matrix-title');
+        if (titleEl) titleEl.textContent = `Rent Payment Matrix (${this.getYearDisplay()})`;
+
+        const db = await getDB();
+        const units = await db.getAll('units');
+        const leases = await db.getAll('leases');
+        const payments = await db.getAll('payments');
+        const tenants = await db.getAll('tenants');
+
+        const tenantMap = {}; tenants.forEach(t => tenantMap[t.id] = t);
+
+        // Sort units numerically
+        units.sort((a, b) => a.unitNumber.localeCompare(b.unitNumber, undefined, { numeric: true }));
+
+        // Generate Months Headers
+        const months = [];
+        if (this.mode === 'calendar') {
+            for (let i = 0; i < 12; i++) {
+                months.push(new Date(this.selectedYear, i, 1));
+            }
+        } else {
+            // April to March
+            for (let i = 4; i <= 15; i++) {
+                // Month index > 11 rolls over to next year automatically in JS Date if we set year correctly
+                // year, monthIndex (0-11).
+                // Actually easier logic:
+                // April (3) to Dec (11) of selectedYear
+                // Jan (0) to Mar (2) of selectedYear + 1
+                const monthIndex = (i - 1) % 12;
+                const yearOffset = i > 12 ? 1 : 0;
+                months.push(new Date(this.selectedYear + yearOffset, monthIndex, 1));
+            }
+        }
+
+        const matrixDiv = this.container.querySelector('#rent-matrix');
+
+        // Build Table
+        let html = `
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="bg-slate-800 text-gray-300">
+                        <th class="p-2 border border-slate-600 sticky left-0 bg-slate-800 z-10 w-32">Unit / Tenant</th>
+                        ${months.map(m => `<th class="p-2 border border-slate-600 text-center min-w-[80px]">${m.toLocaleString('default', { month: 'short' })}</th>`).join('')}
+                        <th class="p-2 border border-slate-600 text-center font-bold min-w-[100px] bg-slate-900 sticky right-0 z-10">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        for (const unit of units) {
+            html += `<tr>`;
+
+            // Row Header
+            html += `<td class="p-2 border border-slate-700 font-semibold sticky left-0 bg-slate-900 z-10">
+                <div class="text-white">Unit ${unit.unitNumber}</div>
+            </td>`;
+
+            let rowTotal = 0;
+
+            for (const monthDate of months) {
+                // Define range for this month
+                const startOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+                const endOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+
+                // Find Lease active in this month
+                const activeLease = leases.find(l => {
+                    if (l.unitId !== unit.id) return false;
+                    const lStart = new Date(l.startDate);
+                    const lEnd = new Date(l.endDate);
+                    return lStart <= endOfMonth && lEnd >= startOfMonth;
+                });
+
+                // Calculate Payments
+                let cellTotal = 0;
+                let cellColor = 'style="background-color: rgba(30, 41, 59, 0.4);"';
+                let cellText = '-';
+
+                if (activeLease) {
+                    const monthPayments = payments.filter(p => {
+                        if (p.leaseId !== activeLease.id) return false;
+                        const pDate = new Date(p.date);
+                        return pDate >= startOfMonth && pDate <= endOfMonth;
+                    });
+
+                    cellTotal = monthPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+                    rowTotal += cellTotal;
+
+                    if (cellTotal > 0) {
+                        cellText = Math.round(cellTotal).toLocaleString('en-IN');
+                        if (Math.abs(cellTotal - activeLease.rentAmount) < 1) {
+                            // Green
+                            cellColor = 'style="background-color: rgba(20, 83, 45, 0.8); color: #4ade80; border: 1px solid #166534;"';
+                        } else {
+                            // Yellow
+                            cellColor = 'style="background-color: rgba(133, 77, 14, 0.8); color: #facc15; border: 1px solid #a16207;"';
+                        }
+                    } else {
+                        // Due logic
+                        const today = new Date();
+                        if (endOfMonth < today) {
+                            // Red
+                            cellColor = 'style="background-color: rgba(127, 29, 29, 0.6); color: #f87171; border: 1px solid #7f1d1d;"';
+                            cellText = '0';
+                        }
+                    }
+                }
+
+                html += `<td class="p-2 border border-slate-700 text-center" ${cellColor}>${cellText}</td>`;
+            }
+
+            // Row Total Column
+            html += `<td class="p-2 border border-slate-700 text-center font-bold bg-slate-900 sticky right-0 z-10 text-white">
+                ${rowTotal.toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 })}
+            </td>`;
+
+            html += `</tr>`;
+        }
+
+        html += `</tbody></table>`;
+        matrixDiv.innerHTML = html;
     }
 
     async renderUnitGrid() {
