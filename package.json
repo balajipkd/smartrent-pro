@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",
+    "gridjs": "^6.2.0",
     "idb": "^8.0.0"
   }
 }
