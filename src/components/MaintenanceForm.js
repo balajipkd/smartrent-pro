@@ -12,19 +12,19 @@ export class MaintenanceForm {
 
   async render() {
     this.container.innerHTML = `
-      <div class="grid md:grid-cols-2 gap-8 items-start">
-        <div class="card">
-            <h2 class="text-xl mb-4" id="form-title">New Maintenance Entry</h2>
+      <div class="grid md:grid-cols-2 gap-6 items-start">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-6" id="form-title">New Maintenance Entry</h2>
             <form id="maintenance-form" class="flex flex-col gap-4">
             
             <div class="flex flex-col">
-                <label for="date">Date *</label>
-                <input type="date" id="date" name="date" required class="bg-slate-900 border border-slate-600 p-2 rounded text-white" />
+                <label for="date" class="text-sm font-medium text-gray-700 mb-1.5">Date *</label>
+                <input type="date" id="date" name="date" required class="" />
             </div>
 
             <div class="flex flex-col">
-                <label for="category">Category *</label>
-                <select id="category" name="category" required class="bg-slate-900 border border-slate-600 p-2 rounded text-white">
+                <label for="category" class="text-sm font-medium text-gray-700 mb-1.5">Category *</label>
+                <select id="category" name="category" required class="">
                 <option value="">Select Category</option>
                 <option value="Plumbing">Plumbing</option>
                 <option value="Electrical">Electrical</option>
@@ -37,33 +37,33 @@ export class MaintenanceForm {
             </div>
 
             <div class="flex flex-col">
-                <label>Link To *</label>
+                <label class="text-sm font-medium text-gray-700 mb-1.5">Link To *</label>
                 <div class="flex gap-4 mb-2">
-                <label class="flex items-center gap-2">
-                    <input type="radio" name="linkType" value="unit" checked /> Specific Unit
+                <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <input type="radio" name="linkType" value="unit" checked class="text-blue-600" /> Specific Unit
                 </label>
-                <label class="flex items-center gap-2">
-                    <input type="radio" name="linkType" value="building" /> General Building
+                <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <input type="radio" name="linkType" value="building" class="text-blue-600" /> General Building
                 </label>
                 </div>
-                <select id="linkTarget" name="linkTarget" required class="bg-slate-900 border border-slate-600 p-2 rounded text-white">
+                <select id="linkTarget" name="linkTarget" required class="">
                 <option value="">Loading...</option>
                 </select>
             </div>
 
             <div class="flex flex-col">
-                <label for="amount">Amount (₹) *</label>
-                <input type="number" id="amount" name="amount" min="0" step="0.01" required placeholder="0.00" class="bg-slate-900 border border-slate-600 p-2 rounded text-white" />
+                <label for="amount" class="text-sm font-medium text-gray-700 mb-1.5">Amount (₹) *</label>
+                <input type="number" id="amount" name="amount" min="0" step="0.01" required placeholder="0.00" class="" />
             </div>
 
             <div class="flex flex-col">
-                <label for="vendor">Vendor Info</label>
-                <input type="text" id="vendor" name="vendor" placeholder="Name / Contact" class="bg-slate-900 border border-slate-600 p-2 rounded text-white" />
+                <label for="vendor" class="text-sm font-medium text-gray-700 mb-1.5">Vendor Info</label>
+                <input type="text" id="vendor" name="vendor" placeholder="Name / Contact" class="" />
             </div>
 
             <div class="flex flex-col">
-                <label for="status">Status</label>
-                <select id="status" name="status" class="bg-slate-900 border border-slate-600 p-2 rounded text-white">
+                <label for="status" class="text-sm font-medium text-gray-700 mb-1.5">Status</label>
+                <select id="status" name="status" class="">
                 <option value="Pending Quote">Pending Quote</option>
                 <option value="Work in Progress">Work in Progress</option>
                 <option value="Paid">Paid</option>
@@ -71,27 +71,27 @@ export class MaintenanceForm {
             </div>
 
             <div class="flex flex-col">
-                <label for="receipt">Receipt Upload</label>
-                <input type="file" id="receipt" name="receipt" accept="image/*,.pdf" class="bg-slate-900 border border-slate-600 p-2 rounded text-white" />
+                <label for="receipt" class="text-sm font-medium text-gray-700 mb-1.5">Receipt Upload</label>
+                <input type="file" id="receipt" name="receipt" accept="image/*,.pdf" class="text-sm" />
                 <div id="receipt-preview" class="mt-2 hidden">
-                    <span class="text-xs text-gray-400">Current Receipt: <span id="receipt-name">View</span></span>
+                    <span class="text-xs text-gray-500">Current Receipt: <span id="receipt-name">View</span></span>
                 </div>
             </div>
 
             <div class="flex flex-col">
-                <label for="notes">Notes</label>
-                <textarea id="notes" name="notes" rows="3" placeholder="Description of work done..." class="bg-slate-900 border border-slate-600 p-2 rounded text-white"></textarea>
+                <label for="notes" class="text-sm font-medium text-gray-700 mb-1.5">Notes</label>
+                <textarea id="notes" name="notes" rows="3" placeholder="Description of work done..." class=""></textarea>
             </div>
 
-            <div class="flex gap-2 mt-4">
+            <div class="flex gap-3 mt-2">
                 <button type="submit" class="btn btn-primary flex-1" id="btn-submit">Save Expense</button>
-                <button type="button" class="btn btn-cancel hidden" id="btn-cancel">Cancel Edit</button>
+                <button type="button" class="btn hidden" id="btn-cancel">Cancel Edit</button>
             </div>
             </form>
         </div>
 
-        <div class="card">
-            <h2 class="text-xl mb-4">Expense History</h2>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Expense History</h2>
             <div id="expense-grid"></div>
         </div>
       </div>
@@ -212,7 +212,7 @@ export class MaintenanceForm {
         const controls = document.createElement('div');
         controls.className = 'flex justify-end mb-2 page-size-selector';
         const sizeSel = document.createElement('select');
-        sizeSel.className = 'bg-slate-900 border border-slate-600 p-1 rounded text-white text-xs outline-none focus:border-blue-500';
+        sizeSel.className = 'px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm';
         [10, 20, 50, 100].forEach(size => {
           const opt = document.createElement('option');
           opt.value = size;
@@ -243,16 +243,13 @@ export class MaintenanceForm {
         search: true,
         pagination: { limit: 50 },
         className: {
-          table: 'w-full text-left border-collapse text-sm',
-          thead: 'bg-slate-800 text-gray-300',
-          th: 'p-2 font-semibold border-b border-gray-600',
-          td: 'p-2 border-b border-gray-700 text-gray-300',
-          container: 'shadow-lg rounded-lg overflow-hidden border border-slate-700 bg-slate-800/20',
-          search: 'p-2 bg-slate-900 border border-slate-600 text-white rounded mb-2 w-full outline-none'
-        },
-        style: {
-          th: { 'background-color': 'rgba(30, 41, 59, 0.9)' },
-          td: { 'background-color': 'rgba(30, 41, 59, 0.4)' }
+          table: 'min-w-full',
+          thead: 'border-b border-gray-200 bg-gray-50',
+          th: 'text-left py-3 px-4 text-sm text-gray-600 font-semibold',
+          td: 'py-3 px-4 text-sm border-b border-gray-100',
+          container: 'overflow-x-auto',
+          footer: 'flex items-center justify-between p-4 text-sm text-gray-600',
+          search: 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4'
         }
       }).render(document.getElementById('expense-grid'));
     }

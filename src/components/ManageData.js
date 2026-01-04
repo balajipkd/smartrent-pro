@@ -15,19 +15,17 @@ export class ManageData {
         this.formatDate = (iso) => iso ? new Date(iso).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '-';
 
         this.container.innerHTML = `
-      <div class="card">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl">Manage Property Data</h2>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-6">Manage Property Data</h2>
+
+        <div class="flex flex-wrap gap-2 mb-6">
+            <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors ${this.activeTab === 'buildings' ? 'bg-white text-gray-900 border-2 border-gray-900' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}" data-tab="buildings">Buildings</button>
+            <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors ${this.activeTab === 'units' ? 'bg-white text-gray-900 border-2 border-gray-900' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}" data-tab="units">Units</button>
+            <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors ${this.activeTab === 'tenants' ? 'bg-white text-gray-900 border-2 border-gray-900' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}" data-tab="tenants">Tenants</button>
+            <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors ${this.activeTab === 'leases' ? 'bg-white text-gray-900 border-2 border-gray-900' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}" data-tab="leases">Leases</button>
         </div>
 
-        <div class="flex gap-2 border-b border-gray-600 mb-4 overflow-x-auto">
-            <button class="tab-btn px-4 py-2 whitespace-nowrap ${this.activeTab === 'buildings' ? 'border-b-2 border-blue-500 text-blue-400' : 'text-gray-400'}" data-tab="buildings">Buildings</button>
-            <button class="tab-btn px-4 py-2 whitespace-nowrap ${this.activeTab === 'units' ? 'border-b-2 border-blue-500 text-blue-400' : 'text-gray-400'}" data-tab="units">Units</button>
-            <button class="tab-btn px-4 py-2 whitespace-nowrap ${this.activeTab === 'tenants' ? 'border-b-2 border-blue-500 text-blue-400' : 'text-gray-400'}" data-tab="tenants">Tenants</button>
-            <button class="tab-btn px-4 py-2 whitespace-nowrap ${this.activeTab === 'leases' ? 'border-b-2 border-blue-500 text-blue-400' : 'text-gray-400'}" data-tab="leases">Leases</button>
-        </div>
-
-        <div id="tab-content" class="flex flex-col gap-8">
+        <div id="tab-content" class="flex flex-col gap-6">
             <!-- Dynamic Form Content -->
         </div>
       </div>
@@ -64,7 +62,7 @@ export class ManageData {
             const controls = document.createElement('div');
             controls.className = 'flex justify-end mb-2';
             const sizeSel = document.createElement('select');
-            sizeSel.className = 'bg-slate-900 border border-slate-600 p-1 rounded text-white text-xs outline-none focus:border-blue-500';
+            sizeSel.className = 'px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm';
             [10, 20, 50, 100].forEach(size => {
                 const opt = document.createElement('option');
                 opt.value = size;
@@ -86,13 +84,12 @@ export class ManageData {
             wrapper.appendChild(gridContainer);
 
             // Map data to array format for Grid.js
-            // formatting happens here to simpler values or HTML
             const formattedData = data.map(item => [
                 ...columns.map(col => col.formatter ? col.formatter(item[col.id], item) : item[col.id]),
                 html(`
-                    <div class="flex gap-2 justify-end">
-                        <button class="p-1 px-3 text-xs font-medium rounded border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300 transition-all btn-edit" data-store="${storeName}" data-id="${item.id}">Edit</button>
-                        <button class="p-1 px-3 text-xs font-medium rounded border border-red-500/30 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all btn-delete" data-store="${storeName}" data-id="${item.id}">Delete</button>
+                    <div class="flex gap-2 justify-center">
+                        <button class="px-3 py-1.5 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors text-sm btn-edit" data-store="${storeName}" data-id="${item.id}">Edit</button>
+                        <button class="px-3 py-1.5 border border-red-300 text-red-600 rounded hover:bg-red-50 transition-colors text-sm btn-delete" data-store="${storeName}" data-id="${item.id}">Del</button>
                     </div>
                 `)
             ]);
@@ -110,18 +107,13 @@ export class ManageData {
                     enabled: true
                 },
                 className: {
-                    table: 'w-full text-left border-collapse',
-                    thead: 'bg-slate-800 text-gray-300',
-                    th: 'p-3 font-semibold border-b border-gray-600',
-                    td: 'p-3 border-b border-gray-700 text-gray-300',
-                    container: 'shadow-lg rounded-lg overflow-hidden border border-slate-700 bg-slate-800/20',
-                    footer: 'bg-slate-800/50 p-3',
-                    search: 'p-2 bg-slate-900 border border-slate-600 text-white rounded mb-2 w-full outline-none focus:border-blue-500'
-                },
-                style: {
-                    th: { 'background-color': 'rgba(30, 41, 59, 0.9)' },
-                    td: { 'background-color': 'rgba(30, 41, 59, 0.4)' },
-                    footer: { 'background-color': 'rgba(30, 41, 59, 0.9)' }
+                    table: 'min-w-full',
+                    thead: 'border-b border-gray-200 bg-gray-50',
+                    th: 'text-left py-3 px-4 text-sm text-gray-600 font-semibold',
+                    td: 'py-3 px-4 text-sm border-b border-gray-100',
+                    container: 'overflow-x-auto',
+                    footer: 'flex items-center justify-between p-4 text-sm text-gray-600',
+                    search: 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4'
                 }
             };
 
@@ -141,13 +133,13 @@ export class ManageData {
             contentDiv.innerHTML = `
             <div class="grid md:grid-cols-3 gap-8 items-start">
                 <div class="md:col-span-1">
-                    <form id="form-building" class="flex flex-col gap-4 sticky top-4 bg-slate-800/50 p-4 rounded border border-slate-700">
-                        <h3 class="text-lg font-semibold border-b border-gray-700 pb-2">${this.editingId ? 'Edit' : 'Add New'} Building</h3>
-                        <input type="text" name="name" placeholder="Building Name" required class="bg-slate-900 border border-slate-600 p-2 rounded text-white" />
-                        <input type="text" name="address" placeholder="Address" required class="bg-slate-900 border border-slate-600 p-2 rounded text-white" />
+                    <form id="form-building" class="flex flex-col gap-4 sticky top-4">
+                        <h3 class="text-base font-semibold text-gray-900 mb-2">${this.editingId ? 'Edit' : 'Add New'} Building</h3>
+                        <input type="text" name="name" placeholder="Building Name" required class="" />
+                        <input type="text" name="address" placeholder="Address" required class="" />
                         <div class="flex gap-2 mt-2">
                             <button type="submit" class="btn btn-primary flex-1">${this.editingId ? 'Update' : 'Add'}</button>
-                            ${this.editingId ? '<button type="button" class="btn btn-cancel">Cancel</button>' : ''}
+                            ${this.editingId ? '<button type="button" class="btn">Cancel</button>' : ''}
                         </div>
                     </form>
                 </div>
@@ -183,21 +175,21 @@ export class ManageData {
             contentDiv.innerHTML = `
              <div class="grid md:grid-cols-3 gap-8 items-start">
                 <div class="md:col-span-1">
-                    <form id="form-unit" class="flex flex-col gap-4 sticky top-4 bg-slate-800/50 p-4 rounded border border-slate-700">
-                        <h3 class="text-lg font-semibold border-b border-gray-700 pb-2">${this.editingId ? 'Edit' : 'Add New'} Unit</h3>
-                        <select name="buildingId" required class="bg-slate-900 border border-slate-600 p-2 rounded text-white">
+                    <form id="form-unit" class="flex flex-col gap-4 sticky top-4">
+                        <h3 class="text-base font-semibold text-gray-900 mb-2">${this.editingId ? 'Edit' : 'Add New'} Unit</h3>
+                        <select name="buildingId" required class="">
                             <option value="">Select Building...</option>
                             ${buildings.map(b => `<option value="${b.id}">${b.name}</option>`).join('')}
                         </select>
-                        <input type="text" name="unitNumber" placeholder="Unit Number" required class="bg-slate-900 border border-slate-600 p-2 rounded text-white" />
-                        <select name="status" class="bg-slate-900 border border-slate-600 p-2 rounded text-white">
+                        <input type="text" name="unitNumber" placeholder="Unit Number" required class="" />
+                        <select name="status" class="">
                             <option value="Vacant">Vacant</option>
                             <option value="Occupied">Occupied</option>
                             <option value="Maintenance">Maintenance</option>
                         </select>
                         <div class="flex gap-2 mt-2">
                             <button type="submit" class="btn btn-primary flex-1">${this.editingId ? 'Update' : 'Add'}</button>
-                            ${this.editingId ? '<button type="button" class="btn btn-cancel">Cancel</button>' : ''}
+                            ${this.editingId ? '<button type="button" class="btn">Cancel</button>' : ''}
                         </div>
                     </form>
                 </div>
@@ -224,13 +216,13 @@ export class ManageData {
             contentDiv.innerHTML = `
             <div class="grid md:grid-cols-3 gap-8 items-start">
                 <div class="md:col-span-1">
-                    <form id="form-tenant" class="flex flex-col gap-4 sticky top-4 bg-slate-800/50 p-4 rounded border border-slate-700">
-                        <h3 class="text-lg font-semibold border-b border-gray-700 pb-2">${this.editingId ? 'Edit' : 'Add New'} Tenant</h3>
-                        <input type="text" name="name" placeholder="Full Name" required class="bg-slate-900 border border-slate-600 p-2 rounded text-white" />
-                        <input type="text" name="contact" placeholder="Phone / Email" required class="bg-slate-900 border border-slate-600 p-2 rounded text-white" />
+                    <form id="form-tenant" class="flex flex-col gap-4 sticky top-4">
+                        <h3 class="text-base font-semibold text-gray-900 mb-2">${this.editingId ? 'Edit' : 'Add New'} Tenant</h3>
+                        <input type="text" name="name" placeholder="Full Name" required class="" />
+                        <input type="text" name="contact" placeholder="Phone / Email" required class="" />
                          <div class="flex gap-2 mt-2">
                             <button type="submit" class="btn btn-primary flex-1">${this.editingId ? 'Update' : 'Add'}</button>
-                            ${this.editingId ? '<button type="button" class="btn btn-cancel">Cancel</button>' : ''}
+                            ${this.editingId ? '<button type="button" class="btn">Cancel</button>' : ''}
                         </div>
                     </form>
                 </div>
@@ -268,19 +260,19 @@ export class ManageData {
             contentDiv.innerHTML = `
             <div class="grid md:grid-cols-3 gap-8 items-start">
                 <div class="md:col-span-1">
-                    <form id="form-lease" class="flex flex-col gap-4 sticky top-4 bg-slate-800/50 p-4 rounded border border-slate-700">
-                        <h3 class="text-lg font-semibold border-b border-gray-700 pb-2">${this.editingId ? 'Edit' : 'Create'} Lease Agreement</h3>
+                    <form id="form-lease" class="flex flex-col gap-4 sticky top-4">
+                        <h3 class="text-base font-semibold text-gray-900 mb-2">${this.editingId ? 'Edit' : 'Create'} Lease Agreement</h3>
                         <div class="flex gap-4">
                             <div class="flex-1">
-                                <label class="text-xs text-gray-500">Unit</label>
-                                <select name="unitId" required class="w-full bg-slate-900 border border-slate-600 p-2 rounded text-white">
+                                <label class="text-xs text-gray-600 mb-1 block">Unit</label>
+                                <select name="unitId" required class="w-full">
                                     <option value="">Select Unit...</option>
                                     ${units.map(u => `<option value="${u.id}">Unit ${u.unitNumber}</option>`).join('')}
                                 </select>
                             </div>
                             <div class="flex-1">
-                                <label class="text-xs text-gray-500">Tenant</label>
-                                <select name="tenantId" required class="w-full bg-slate-900 border border-slate-600 p-2 rounded text-white">
+                                <label class="text-xs text-gray-600 mb-1 block">Tenant</label>
+                                <select name="tenantId" required class="w-full">
                                     <option value="">Select Tenant...</option>
                                     ${tenants.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}
                                 </select>
@@ -288,21 +280,21 @@ export class ManageData {
                         </div>
                         <div class="flex gap-4">
                             <div class="flex-1">
-                                <label class="text-xs text-gray-500">Start Date</label>
-                                <input type="date" name="startDate" required class="w-full bg-slate-900 border border-slate-600 p-2 rounded text-white" />
+                                <label class="text-xs text-gray-600 mb-1 block">Start Date</label>
+                                <input type="date" name="startDate" required class="w-full" />
                             </div>
                             <div class="flex-1">
-                                <label class="text-xs text-gray-500">End Date</label>
-                                <input type="date" name="endDate" required class="w-full bg-slate-900 border border-slate-600 p-2 rounded text-white" />
+                                <label class="text-xs text-gray-600 mb-1 block">End Date</label>
+                                <input type="date" name="endDate" required class="w-full" />
                             </div>
                         </div>
                         <div>
-                             <label class="text-xs text-gray-500">Rent Amount (₹)</label>
-                             <input type="number" name="rentAmount" required placeholder="0.00" class="w-full bg-slate-900 border border-slate-600 p-2 rounded text-white" />
+                             <label class="text-xs text-gray-600 mb-1 block">Rent Amount (₹)</label>
+                             <input type="number" name="rentAmount" required placeholder="0.00" class="w-full" />
                         </div>
                          <div class="flex gap-2 mt-2">
                             <button type="submit" class="btn btn-primary flex-1">${this.editingId ? 'Update' : 'Create'}</button>
-                            ${this.editingId ? '<button type="button" class="btn btn-cancel">Cancel</button>' : ''}
+                            ${this.editingId ? '<button type="button" class="btn">Cancel</button>' : ''}
                         </div>
                     </form>
                 </div>

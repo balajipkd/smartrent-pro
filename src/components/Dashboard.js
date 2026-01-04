@@ -18,53 +18,61 @@ export class Dashboard {
 
     async render() {
         this.container.innerHTML = `
-      <div class="card mb-4">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl">Financial Overview</h2>
-            <div class="flex gap-2 bg-gray-700 p-1 rounded">
-                <button id="toggle-calendar" class="btn ${this.mode === 'calendar' ? 'btn-primary' : ''}">Calendar Year</button>
-                <button id="toggle-financial" class="btn ${this.mode === 'financial' ? 'btn-primary' : ''}">Financial Year (Apr-Mar)</button>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Unit Status (Current Month)</h2>
+        <div id="unit-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-4">
+            Loading...
+        </div>
+        <div class="flex flex-wrap gap-4 text-sm text-gray-600">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> Paid</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-yellow-500"></span> Partial</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-red-500"></span> Overdue</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-gray-300"></span> Vacant</span>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900">Financial Overview</h2>
+            <div class="flex gap-2 bg-gray-100 p-1 rounded-lg">
+                <button id="toggle-calendar" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${this.mode === 'calendar' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-200'}">Calendar Year</button>
+                <button id="toggle-financial" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${this.mode === 'financial' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-200'}">Financial Year (Apr-Mar)</button>
             </div>
         </div>
         
-        <div class="flex justify-between items-center mb-4">
-            <button id="prev-year" class="btn">&lt;</button>
-            <span class="text-xl" id="year-display">${this.getYearDisplay()}</span>
-            <button id="next-year" class="btn">&gt;</button>
+        <div class="flex justify-between items-center mb-6">
+            <button id="prev-year" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <span class="text-xl font-semibold text-gray-900" id="year-display">${this.getYearDisplay()}</span>
+            <button id="next-year" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
         </div>
 
-        <div class="grid-stats flex gap-4" style="display: grid; grid-template-columns: repeat(3, 1fr);">
-            <div class="stat-box p-4 rounded bg-slate-800 border border-slate-600">
-                <div class="text-sm text-gray-400">Gross Revenue</div>
-                <div class="text-2xl text-green-400" id="gross-revenue">₹0.00</div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                <div class="text-sm font-medium text-blue-600 mb-1">Gross Revenue</div>
+                <div class="text-2xl font-bold text-blue-900" id="gross-revenue">₹0.00</div>
             </div>
-            <div class="stat-box p-4 rounded bg-slate-800 border border-slate-600">
-                <div class="text-sm text-gray-400">Total Maintenance</div>
-                <div class="text-2xl text-red-400" id="total-maintenance">₹0.00</div>
+            <div class="bg-orange-50 rounded-lg p-4 border border-orange-100">
+                <div class="text-sm font-medium text-orange-600 mb-1">Total Maintenance</div>
+                <div class="text-2xl font-bold text-orange-900" id="total-maintenance">₹0.00</div>
             </div>
-            <div class="stat-box p-4 rounded bg-slate-800 border border-slate-600">
-                <div class="text-sm text-gray-400">Net Profit</div>
-                <div class="text-2xl text-blue-400" id="net-profit">₹0.00</div>
+            <div class="bg-green-50 rounded-lg p-4 border border-green-100">
+                <div class="text-sm font-medium text-green-600 mb-1">Net Profit</div>
+                <div class="text-2xl font-bold text-green-900" id="net-profit">₹0.00</div>
             </div>
         </div>
       </div>
 
-      <div class="card mb-4 overflow-x-auto">
-        <h2 class="text-xl mb-4" id="matrix-title">Rent Payment Matrix</h2>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 overflow-x-auto">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4" id="matrix-title">Rent Payment Matrix</h2>
         <div id="rent-matrix">Loading Matrix...</div>
-      </div>
-
-      <div class="card">
-        <h2 class="text-xl mb-4">Unit Status (Current Month)</h2>
-        <div id="unit-grid" class="flex flex-wrap gap-4">
-            Loading...
-        </div>
-        <div class="flex gap-4 mt-4 text-sm text-gray-400">
-            <span class="flex items-center gap-1"><span style="color:var(--success)">●</span> Paid</span>
-            <span class="flex items-center gap-1"><span style="color:var(--warning)">●</span> Partial</span>
-            <span class="flex items-center gap-1"><span style="color:var(--danger)">●</span> Overdue</span>
-            <span class="flex items-center gap-1"><span style="color:var(--info)">●</span> Vacant</span>
-        </div>
       </div>
     `;
 
@@ -169,82 +177,70 @@ export class Dashboard {
 
         const matrixDiv = this.container.querySelector('#rent-matrix');
 
-        // Build Table
         let html = `
             <table class="w-full text-left border-collapse text-xs">
                 <thead>
-                    <tr class="bg-slate-800 text-gray-300">
-                        <th class="p-2 border border-slate-600 sticky left-0 bg-slate-800 z-10 w-32">Unit / Tenant</th>
-                        ${months.map(m => `<th class="p-2 border border-slate-600 text-center min-w-[80px]">${m.toLocaleString('default', { month: 'short' })}</th>`).join('')}
-                        <th class="p-2 border border-slate-600 text-center font-bold min-w-[100px] bg-slate-900 sticky right-0 z-10">Total</th>
+                    <tr class="bg-gray-50 text-gray-700 border-b border-gray-200">
+                        <th class="p-3 font-semibold sticky left-0 bg-gray-50 z-10 w-32 border-r border-gray-200">Unit / Tenant</th>
+                        ${months.map(m => `<th class="p-3 font-semibold text-center min-w-[80px] border-r border-gray-200">${m.toLocaleString('default', { month: 'short' })}</th>`).join('')}
+                        <th class="p-3 font-semibold text-center min-w-[100px] bg-gray-100 sticky right-0 z-10 border-l border-gray-300">Total</th>
                     </tr>
                 </thead>
                 <tbody>
         `;
 
         for (const unit of units) {
-            html += `<tr>`;
-
-            // Row Header
-            html += `<td class="p-2 border border-slate-700 font-semibold sticky left-0 bg-slate-900 z-10">
-                <div class="text-white">Unit ${unit.unitNumber}</div>
+            html += `<tr class="border-b border-gray-100 hover:bg-gray-50">`;
+            html += `<td class="p-3 font-medium sticky left-0 bg-white z-10 border-r border-gray-200">
+                <div class="text-gray-900 font-semibold">Unit ${unit.unitNumber}</div>
             </td>`;
 
             let rowTotal = 0;
 
             for (const monthDate of months) {
-                // Define range for this month
-                const startOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
-                const endOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+                const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+                const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
 
-                // Find Lease active in this month
                 const activeLease = leases.find(l => {
-                    if (l.unitId !== unit.id) return false;
-                    const lStart = new Date(l.startDate);
-                    const lEnd = new Date(l.endDate);
-                    return lStart <= endOfMonth && lEnd >= startOfMonth;
+                    return l.unitId === unit.id &&
+                        new Date(l.startDate) <= monthEnd &&
+                        new Date(l.endDate) >= monthStart;
                 });
 
-                // Calculate Payments
                 let cellTotal = 0;
-                let cellColor = 'style="background-color: rgba(30, 41, 59, 0.4);"';
+                let cellColor = '';
                 let cellText = '-';
 
                 if (activeLease) {
                     const monthPayments = payments.filter(p => {
-                        if (p.leaseId !== activeLease.id) return false;
                         const pDate = new Date(p.date);
-                        return pDate >= startOfMonth && pDate <= endOfMonth;
+                        return p.leaseId === activeLease.id && pDate >= monthStart && pDate <= monthEnd;
                     });
 
-                    cellTotal = monthPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
-                    rowTotal += cellTotal;
+                    cellTotal = monthPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
 
                     if (cellTotal > 0) {
-                        cellText = Math.round(cellTotal).toLocaleString('en-IN');
-                        if (Math.abs(cellTotal - activeLease.rentAmount) < 1) {
-                            // Green
-                            cellColor = 'style="background-color: rgba(20, 83, 45, 0.8); color: #4ade80; border: 1px solid #166534;"';
+                        cellText = this.formatCurrency(cellTotal);
+                        if (cellTotal >= activeLease.rentAmount) {
+                            cellColor = 'style="background-color: #d1fae5; color: #065f46;"'; // green-100/green-800
                         } else {
-                            // Yellow
-                            cellColor = 'style="background-color: rgba(133, 77, 14, 0.8); color: #facc15; border: 1px solid #a16207;"';
+                            cellColor = 'style="background-color: #fef3c7; color: #92400e;"'; // yellow-100/yellow-800
                         }
                     } else {
-                        // Due logic
-                        const today = new Date();
-                        if (endOfMonth < today) {
-                            // Red
-                            cellColor = 'style="background-color: rgba(127, 29, 29, 0.6); color: #f87171; border: 1px solid #7f1d1d;"';
-                            cellText = '0';
+                        const now = new Date();
+                        if (monthEnd < now) {
+                            cellColor = 'style="background-color: #fee2e2; color: #991b1b;"'; // red-100/red-800
+                            cellText = '₹0';
                         }
                     }
                 }
 
-                html += `<td class="p-2 border border-slate-700 text-center" ${cellColor}>${cellText}</td>`;
+                rowTotal += cellTotal;
+                html += `<td class="p-3 text-center border-r border-gray-100" ${cellColor}>${cellText}</td>`;
             }
 
             // Row Total Column
-            html += `<td class="p-2 border border-slate-700 text-center font-bold bg-slate-900 sticky right-0 z-10 text-white">
+            html += `<td class="p-3 text-center font-bold bg-gray-50 sticky right-0 z-10 text-gray-900 border-l border-gray-300">
                 ${rowTotal.toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 })}
             </td>`;
 
@@ -269,12 +265,10 @@ export class Dashboard {
         const currentMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
         for (const unit of units) {
-            let status = 'Vacant'; // Blue
-            let color = 'var(--info)';
+            let status = 'Vacant';
+            let bgColor = '#e5e7eb'; // gray-200
+            let textColor = '#374151'; // gray-700
 
-            // Find active lease
-            // Simple check: start <= now <= end
-            // For MVP we just iterate.
             const activeLease = leases.find(l => {
                 return l.unitId === unit.id &&
                     new Date(l.startDate) <= today &&
@@ -282,8 +276,6 @@ export class Dashboard {
             });
 
             if (activeLease) {
-                // Check payments for this month
-                // Filter payments for this lease within current month
                 const leasePayments = payments.filter(p => {
                     const pDate = new Date(p.date);
                     return p.leaseId === activeLease.id && pDate >= currentMonthStart && pDate <= currentMonthEnd;
@@ -293,28 +285,26 @@ export class Dashboard {
 
                 if (totalPaid >= activeLease.rentAmount) {
                     status = 'Paid';
-                    color = 'var(--success)';
+                    bgColor = '#10b981'; // emerald-500
+                    textColor = '#ffffff';
                 } else if (totalPaid > 0) {
                     status = 'Partial';
-                    color = 'var(--warning)';
+                    bgColor = '#eab308'; // yellow-500
+                    textColor = '#ffffff';
                 } else {
                     status = 'Overdue';
-                    color = 'var(--danger)';
-                }
-            } else {
-                // Check if specifically marked Occupied but no lease (data inconsistency or manual status)
-                if (unit.status === 'Occupied' && !activeLease) {
-                    // Fallback
+                    bgColor = '#ef4444'; // red-500
+                    textColor = '#ffffff';
                 }
             }
 
             const unitEl = document.createElement('div');
-            unitEl.className = 'flex flex-col items-center justify-center w-24 h-24 rounded shadow cursor-pointer transition transform hover:scale-105';
-            unitEl.style.backgroundColor = color;
-            unitEl.style.color = '#fff';
+            unitEl.className = 'flex flex-col items-center justify-center rounded-lg shadow-sm cursor-pointer transition transform hover:scale-105 aspect-square';
+            unitEl.style.backgroundColor = bgColor;
+            unitEl.style.color = textColor;
             unitEl.innerHTML = `
-            <span class="text-lg font-bold">#${unit.unitNumber}</span>
-            <span class="text-xs">${status}</span>
+            <span class="text-sm font-bold">${status}</span>
+            <span class="text-xs font-semibold">#${unit.unitNumber}</span>
         `;
             grid.appendChild(unitEl);
         }

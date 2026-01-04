@@ -12,39 +12,39 @@ export class PaymentForm {
 
   async render() {
     this.container.innerHTML = `
-      <div class="grid md:grid-cols-2 gap-8 items-start">
-        <div class="card">
-            <h2 class="text-xl mb-4" id="form-title">Record Rent Payment</h2>
+      <div class="grid md:grid-cols-2 gap-6 items-start">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-6" id="form-title">Record Rent Payment</h2>
             <form id="payment-form" class="flex flex-col gap-4">
             
             <div class="flex flex-col">
-                <label for="date">Date Received *</label>
-                <input type="date" id="date" name="date" required class="bg-slate-900 border border-slate-600 p-2 rounded text-white" />
+                <label for="date" class="text-sm font-medium text-gray-700 mb-1.5">Date Received *</label>
+                <input type="date" id="date" name="date" required class="" />
             </div>
 
             <div class="flex flex-col">
-                <label for="tenant">Tenant *</label>
-                <select id="tenant" name="tenant" required class="bg-slate-900 border border-slate-600 p-2 rounded text-white">
-                <option value="">Loading Tenants...</option>
+                <label for="tenant" class="text-sm font-medium text-gray-700 mb-1.5">Tenant *</label>
+                <select id="tenant" name="tenant" required class="">
+                <option value="">Select Tenant...</option>
                 </select>
             </div>
 
-            <div class="p-4 bg-slate-800 rounded border border-slate-600 hidden" id="lease-info">
-                <p class="text-sm text-gray-400">Lease Details</p>
-                <div class="flex justify-between items-center mt-1">
-                    <span id="unit-display" class="font-bold text-white">Unit --</span>
-                    <span id="rent-display" class="font-bold text-green-400">₹0.00 / month</span>
+            <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 hidden" id="lease-info">
+                <p class="text-xs font-medium text-gray-500 mb-2">Lease Details</p>
+                <div class="flex justify-between items-center">
+                    <span id="unit-display" class="font-semibold text-gray-900">Unit --</span>
+                    <span id="rent-display" class="font-semibold text-gray-900">₹0.00 / month</span>
                 </div>
             </div>
 
             <div class="flex flex-col">
-                <label for="amount">Amount (₹) *</label>
-                <input type="number" id="amount" name="amount" min="0" step="0.01" required placeholder="0.00" class="bg-slate-900 border border-slate-600 p-2 rounded text-white" />
+                <label for="amount" class="text-sm font-medium text-gray-700 mb-1.5">Amount (₹) *</label>
+                <input type="number" id="amount" name="amount" min="0" step="0.01" required placeholder="0.00" class="" />
             </div>
 
             <div class="flex flex-col">
-                <label for="type">Payment Method</label>
-                <select id="type" name="type" class="bg-slate-900 border border-slate-600 p-2 rounded text-white">
+                <label for="type" class="text-sm font-medium text-gray-700 mb-1.5">Payment Method</label>
+                <select id="type" name="type" class="">
                 <option value="Bank Transfer">Bank Transfer</option>
                 <option value="Cash">Cash</option>
                 <option value="Check">Check</option>
@@ -54,19 +54,19 @@ export class PaymentForm {
             </div>
 
             <div class="flex flex-col">
-                <label for="notes">Notes</label>
-                <textarea id="notes" name="notes" rows="2" placeholder="Reference number, comments..." class="bg-slate-900 border border-slate-600 p-2 rounded text-white"></textarea>
+                <label for="notes" class="text-sm font-medium text-gray-700 mb-1.5">Notes</label>
+                <textarea id="notes" name="notes" rows="3" placeholder="Reference number, comments..." class=""></textarea>
             </div>
 
-            <div class="flex gap-2 mt-4">
+            <div class="flex gap-3 mt-2">
                 <button type="submit" class="btn btn-primary flex-1" id="btn-submit">Record Payment</button>
-                <button type="button" class="btn btn-cancel hidden" id="btn-cancel">Cancel Edit</button>
+                <button type="button" class="btn hidden" id="btn-cancel">Cancel Edit</button>
             </div>
             </form>
         </div>
 
-        <div class="card">
-            <h2 class="text-xl mb-4">Payment History</h2>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Payment History</h2>
             <div id="payment-grid"></div>
         </div>
       </div>
@@ -215,7 +215,7 @@ export class PaymentForm {
         const controls = document.createElement('div');
         controls.className = 'flex justify-end mb-2 page-size-selector';
         const sizeSel = document.createElement('select');
-        sizeSel.className = 'bg-slate-900 border border-slate-600 p-1 rounded text-white text-xs outline-none focus:border-blue-500';
+        sizeSel.className = 'px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm';
         [10, 20, 50, 100].forEach(size => {
           const opt = document.createElement('option');
           opt.value = size;
@@ -248,16 +248,13 @@ export class PaymentForm {
         search: true,
         pagination: { limit: 50 },
         className: {
-          table: 'w-full text-left border-collapse text-sm',
-          thead: 'bg-slate-800 text-gray-300',
-          th: 'p-2 font-semibold border-b border-gray-600',
-          td: 'p-2 border-b border-gray-700 text-gray-300',
-          container: 'shadow-lg rounded-lg overflow-hidden border border-slate-700 bg-slate-800/20',
-          search: 'p-2 bg-slate-900 border border-slate-600 text-white rounded mb-2 w-full outline-none'
-        },
-        style: {
-          th: { 'background-color': 'rgba(30, 41, 59, 0.9)' },
-          td: { 'background-color': 'rgba(30, 41, 59, 0.4)' }
+          table: 'min-w-full',
+          thead: 'border-b border-gray-200 bg-gray-50',
+          th: 'text-left py-3 px-4 text-sm text-gray-600 font-semibold',
+          td: 'py-3 px-4 text-sm border-b border-gray-100',
+          container: 'overflow-x-auto',
+          footer: 'flex items-center justify-between p-4 text-sm text-gray-600',
+          search: 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4'
         }
       }).render(document.getElementById('payment-grid'));
     }
