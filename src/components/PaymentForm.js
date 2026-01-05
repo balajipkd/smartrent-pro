@@ -23,6 +23,11 @@ export class PaymentForm {
             </div>
 
             <div class="flex flex-col">
+                <label for="paymentPeriod" class="text-sm font-medium text-gray-700 mb-1.5">Payment For (Month/Year) *</label>
+                <input type="month" id="paymentPeriod" name="paymentPeriod" required class="" />
+            </div>
+
+            <div class="flex flex-col">
                 <label for="tenant" class="text-sm font-medium text-gray-700 mb-1.5">Tenant *</label>
                 <select id="tenant" name="tenant" required class="">
                 <option value="">Select Tenant...</option>
@@ -78,6 +83,11 @@ export class PaymentForm {
 
     // Default date to today
     this.form.querySelector('#date').valueAsDate = new Date();
+
+    // Default payment period to current month
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    this.form.querySelector('#paymentPeriod').value = currentMonth;
 
     // Event Listeners
     this.tenantSelect.addEventListener('change', (e) => this.handleTenantChange(e.target.value));
@@ -179,6 +189,7 @@ export class PaymentForm {
 
       return [
         new Date(p.date).toLocaleDateString('en-IN'),
+        p.paymentPeriod ? new Date(p.paymentPeriod).toLocaleDateString('en-IN', { year: 'numeric', month: 'short' }) : '-',
         tenantName,
         unitName, // Add Unit
         p.amount,
@@ -199,6 +210,7 @@ export class PaymentForm {
         data: enrichedData,
         columns: [
           { name: 'Date', width: '100px' },
+          { name: 'Period', width: '100px' },
           { name: 'Tenant', width: '120px' },
           { name: 'Unit', width: '80px' },
           { name: 'Amount', width: '100px', formatter: (cell) => `₹${cell}` },
@@ -236,6 +248,7 @@ export class PaymentForm {
       this.gridInstance = new Grid({
         columns: [
           { name: 'Date', width: '100px' },
+          { name: 'Period', width: '100px' },
           { name: 'Tenant', width: '120px' },
           { name: 'Unit', width: '80px' }, // Add Unit Col
           { name: 'Amount', width: '100px', formatter: (cell) => `₹${cell}` },
@@ -273,6 +286,7 @@ export class PaymentForm {
 
     // Populate Form
     this.form.querySelector('#date').value = payment.date;
+    this.form.querySelector('#paymentPeriod').value = payment.paymentPeriod || '';
     this.form.querySelector('#amount').value = payment.amount;
     this.form.querySelector('#type').value = payment.type;
     this.form.querySelector('#notes').value = payment.notes;
@@ -290,6 +304,12 @@ export class PaymentForm {
     this.editingId = null;
     this.form.reset();
     this.form.querySelector('#date').valueAsDate = new Date();
+
+    // Reset payment period to current month
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    this.form.querySelector('#paymentPeriod').value = currentMonth;
+
     this.container.querySelector('#form-title').textContent = 'Record Rent Payment';
     this.container.querySelector('#btn-submit').textContent = 'Record Payment';
     this.container.querySelector('#btn-cancel').classList.add('hidden');
@@ -311,6 +331,7 @@ export class PaymentForm {
     const payment = {
       leaseId: parseInt(leaseId),
       date: formData.get('date'),
+      paymentPeriod: `${formData.get('paymentPeriod')}-01`,
       amount: parseFloat(formData.get('amount')),
       type: formData.get('type'),
       notes: formData.get('notes'),

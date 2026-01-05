@@ -12,14 +12,25 @@ export class Dashboard {
         if (this.mode === 'financial' && now.getMonth() < 3) {
             this.selectedYear--;
         }
+        this.selectedBuildingId = 'all';
 
         this.render();
     }
 
     async render() {
         this.container.innerHTML = `
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <div class="flex items-center gap-3">
+          <label for="building-filter" class="text-sm font-medium text-gray-700">Filter Building:</label>
+          <select id="building-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-[200px]">
+            <option value="all">All Buildings</option>
+          </select>
+        </div>
+      </div>
+
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Unit Status (Current Month)</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mb-4" id="unit-status-header">Unit Status (Previous Month)</h2>
         <div id="unit-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-4">
             Loading...
         </div>
@@ -82,9 +93,38 @@ export class Dashboard {
         this.container.querySelector('#prev-year').addEventListener('click', () => this.changeYear(-1));
         this.container.querySelector('#next-year').addEventListener('click', () => this.changeYear(1));
 
+        const buildingFilter = this.container.querySelector('#building-filter');
+        buildingFilter.value = this.selectedBuildingId;
+        buildingFilter.addEventListener('change', (e) => {
+            this.selectedBuildingId = e.target.value;
+            this.updateDashboard();
+        });
+
+        await this.loadBuildings();
+
         await this.calculateStats();
         await this.renderRentMatrix();
         await this.renderUnitGrid();
+    }
+
+    async updateDashboard() {
+        await this.calculateStats();
+        await this.renderRentMatrix();
+        await this.renderUnitGrid();
+    }
+
+    async loadBuildings() {
+        const db = await getDB();
+        const buildings = await db.getAll('buildings');
+        const filter = this.container.querySelector('#building-filter');
+
+        buildings.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.id;
+            opt.textContent = b.name;
+            filter.appendChild(opt);
+        });
+        filter.value = this.selectedBuildingId;
     }
 
     setMode(mode) {
@@ -95,8 +135,7 @@ export class Dashboard {
     changeYear(delta) {
         this.selectedYear += delta;
         this.container.querySelector('#year-display').textContent = this.getYearDisplay();
-        this.calculateStats();
-        this.renderRentMatrix();
+        this.updateDashboard();
     }
 
     getYearDisplay() {
@@ -105,8 +144,13 @@ export class Dashboard {
 
     async calculateStats() {
         const db = await getDB();
-        const payments = await db.getAll('payments'); // Revenue
-        const expenses = await db.getAll('expenses'); // Maintenance
+        const payments = await db.getAll('payments');
+        const expenses = await db.getAll('expenses');
+        const leases = await db.getAll('leases');
+        const units = await db.getAll('units');
+
+        const unitMap = {}; units.forEach(u => unitMap[u.id] = u);
+        const leaseMap = {}; leases.forEach(l => leaseMap[l.id] = l);
 
         let startDate, endDate;
 
@@ -124,12 +168,36 @@ export class Dashboard {
 
         payments.forEach(p => {
             const d = new Date(p.date);
-            if (d >= startDate && d <= endDate) gross += parseFloat(p.amount || 0);
+            if (d >= startDate && d <= endDate) {
+                if (this.selectedBuildingId === 'all') {
+                    gross += parseFloat(p.amount || 0);
+                } else {
+                    const lease = leaseMap[p.leaseId];
+                    const unit = lease ? unitMap[lease.unitId] : null;
+                    if (unit && unit.buildingId === parseInt(this.selectedBuildingId)) {
+                        gross += parseFloat(p.amount || 0);
+                    }
+                }
+            }
         });
 
         expenses.forEach(e => {
             const d = new Date(e.date);
-            if (d >= startDate && d <= endDate) maint += parseFloat(e.amount || 0);
+            if (d >= startDate && d <= endDate) {
+                if (this.selectedBuildingId === 'all') {
+                    maint += parseFloat(e.amount || 0);
+                } else {
+                    let expenseBuildingId = e.buildingId;
+                    if (!expenseBuildingId && e.unitId) {
+                        const unit = unitMap[e.unitId];
+                        if (unit) expenseBuildingId = unit.buildingId;
+                    }
+
+                    if (expenseBuildingId === parseInt(this.selectedBuildingId)) {
+                        maint += parseFloat(e.amount || 0);
+                    }
+                }
+            }
         });
 
         const net = gross - maint;
@@ -145,10 +213,14 @@ export class Dashboard {
         if (titleEl) titleEl.textContent = `Rent Payment Matrix (${this.getYearDisplay()})`;
 
         const db = await getDB();
-        const units = await db.getAll('units');
+        let units = await db.getAll('units');
         const leases = await db.getAll('leases');
         const payments = await db.getAll('payments');
         const tenants = await db.getAll('tenants');
+
+        if (this.selectedBuildingId !== 'all') {
+            units = units.filter(u => u.buildingId === parseInt(this.selectedBuildingId));
+        }
 
         const tenantMap = {}; tenants.forEach(t => tenantMap[t.id] = t);
 
@@ -176,7 +248,7 @@ export class Dashboard {
         }
 
         const matrixDiv = this.container.querySelector('#rent-matrix');
-
+        // console.log(months);
         let html = `
             <table class="w-full text-left border-collapse text-xs">
                 <thead>
@@ -211,10 +283,22 @@ export class Dashboard {
                 let cellColor = '';
                 let cellText = '-';
 
+                if (unit.unitNumber == 'D3') {
+                    console.log(activeLease);
+                }
                 if (activeLease) {
+                    // Use payment period to filter payments for this month
+                    const monthPeriod = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}-01`;
+                    // console.log(monthPeriod);
                     const monthPayments = payments.filter(p => {
-                        const pDate = new Date(p.date);
-                        return p.leaseId === activeLease.id && pDate >= monthStart && pDate <= monthEnd;
+                        // Check if payment is for this month using paymentPeriod
+                        // Fall back to date-based filtering for old records without paymentPeriod
+                        if (p.paymentPeriod) {
+                            return p.leaseId === activeLease.id && p.paymentPeriod === monthPeriod;
+                        } else {
+                            const pDate = new Date(p.date);
+                            return p.leaseId === activeLease.id && pDate >= monthStart && pDate <= monthEnd;
+                        }
                     });
 
                     cellTotal = monthPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
@@ -253,16 +337,26 @@ export class Dashboard {
 
     async renderUnitGrid() {
         const db = await getDB();
-        const units = await db.getAll('units');
+        let units = await db.getAll('units');
         const leases = await db.getAll('leases');
         const payments = await db.getAll('payments');
+
+        if (this.selectedBuildingId !== 'all') {
+            units = units.filter(u => u.buildingId === parseInt(this.selectedBuildingId));
+        }
 
         const grid = this.container.querySelector('#unit-grid');
         grid.innerHTML = '';
 
-        const today = new Date();
-        const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-        const currentMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        const statusDate = new Date();
+        statusDate.setMonth(statusDate.getMonth() - 1);
+
+        const monthName = statusDate.toLocaleString('default', { month: 'long' });
+        const header = this.container.querySelector('#unit-status-header');
+        if (header) header.textContent = `Unit Status (${monthName} ${statusDate.getFullYear()})`;
+
+        const currentMonthStart = new Date(statusDate.getFullYear(), statusDate.getMonth(), 1);
+        const currentMonthEnd = new Date(statusDate.getFullYear(), statusDate.getMonth() + 1, 0);
 
         for (const unit of units) {
             let status = 'Vacant';
@@ -271,14 +365,23 @@ export class Dashboard {
 
             const activeLease = leases.find(l => {
                 return l.unitId === unit.id &&
-                    new Date(l.startDate) <= today &&
-                    new Date(l.endDate) >= today;
+                    new Date(l.startDate) <= currentMonthEnd &&
+                    new Date(l.endDate) >= currentMonthStart;
             });
 
             if (activeLease) {
+                // Use payment period to determine if rent for the specific status month is paid
+                const currentPeriod = `${statusDate.getFullYear()}-${String(statusDate.getMonth() + 1).padStart(2, '0')}-01`;
+
                 const leasePayments = payments.filter(p => {
-                    const pDate = new Date(p.date);
-                    return p.leaseId === activeLease.id && pDate >= currentMonthStart && pDate <= currentMonthEnd;
+                    // Check if payment is for current month using paymentPeriod
+                    // Fall back to date-based filtering for old records without paymentPeriod
+                    if (p.paymentPeriod) {
+                        return p.leaseId === activeLease.id && p.paymentPeriod === currentPeriod;
+                    } else {
+                        const pDate = new Date(p.date);
+                        return p.leaseId === activeLease.id && pDate >= currentMonthStart && pDate <= currentMonthEnd;
+                    }
                 });
 
                 const totalPaid = leasePayments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
