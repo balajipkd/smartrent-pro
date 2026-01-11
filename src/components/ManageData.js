@@ -127,6 +127,7 @@ export class ManageData {
             const columns = [
                 { id: 'name', name: 'Name' },
                 { id: 'address', name: 'Address' },
+                { id: 'showWhenDashboardIsLoaded', name: 'Default?', formatter: (cell) => cell ? html('<span class="text-blue-600 font-bold">Yes</span>') : 'No' },
                 { id: 'createdAt', name: 'Created', formatter: (cell) => this.formatDate(cell) }
             ];
 
@@ -137,6 +138,10 @@ export class ManageData {
                         <h3 class="text-base font-semibold text-gray-900 mb-2">${this.editingId ? 'Edit' : 'Add New'} Building</h3>
                         <input type="text" name="name" placeholder="Building Name" required class="" />
                         <input type="text" name="address" placeholder="Address" required class="" />
+                        <div class="flex items-center gap-2 px-1">
+                            <input type="checkbox" name="showWhenDashboardIsLoaded" id="show-when-dashboard-is-loaded" class="w-4 h-4" />
+                            <label for="show-when-dashboard-is-loaded" class="text-sm text-gray-700">Show When Dashboard is Loaded</label>
+                        </div>
                         <div class="flex gap-2 mt-2">
                             <button type="submit" class="btn btn-primary flex-1">${this.editingId ? 'Update' : 'Add'}</button>
                             ${this.editingId ? '<button type="button" class="btn">Cancel</button>' : ''}
@@ -148,7 +153,8 @@ export class ManageData {
 
             this.setupFormHandler(contentDiv, 'buildings', async (formData) => ({
                 name: formData.get('name'),
-                address: formData.get('address')
+                address: formData.get('address'),
+                showWhenDashboardIsLoaded: formData.get('showWhenDashboardIsLoaded') === 'on'
             }));
 
             contentDiv.querySelector('#table-wrapper').appendChild(renderGrid(columns, buildings, 'buildings'));
@@ -417,7 +423,11 @@ export class ManageData {
         for (const [key, value] of Object.entries(data)) {
             const input = form.elements[key];
             if (input) {
-                input.value = value;
+                if (input.type === 'checkbox') {
+                    input.checked = !!value;
+                } else {
+                    input.value = value;
+                }
             }
         }
     }
