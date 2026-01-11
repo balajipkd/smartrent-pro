@@ -65,10 +65,18 @@ export class Dashboard {
             </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
                 <div class="text-sm font-medium text-blue-600 mb-1">Gross Revenue</div>
                 <div class="text-2xl font-bold text-blue-900" id="gross-revenue">₹0.00</div>
+            </div>
+            <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
+                <div class="text-sm font-medium text-indigo-600 mb-1">Bank Transfer</div>
+                <div class="text-2xl font-bold text-indigo-900" id="bank-transfer-total">₹0.00</div>
+            </div>
+            <div class="bg-purple-50 rounded-lg p-4 border border-purple-100">
+                <div class="text-sm font-medium text-purple-600 mb-1">Other Methods</div>
+                <div class="text-2xl font-bold text-purple-900" id="other-methods-total">₹0.00</div>
             </div>
             <div class="bg-orange-50 rounded-lg p-4 border border-orange-100">
                 <div class="text-sm font-medium text-orange-600 mb-1">Total Maintenance</div>
@@ -164,18 +172,34 @@ export class Dashboard {
         }
 
         let gross = 0;
+        let bankTotal = 0;
+        let otherTotal = 0;
         let maint = 0;
 
         payments.forEach(p => {
-            const d = new Date(p.date);
-            if (d >= startDate && d <= endDate) {
+            // Priority: paymentPeriod (e.g. 2024-01-01), fallback: date
+            const effectiveDate = p.paymentPeriod ? new Date(p.paymentPeriod) : new Date(p.date);
+
+            if (effectiveDate >= startDate && effectiveDate <= endDate) {
+                const amount = parseFloat(p.amount || 0);
+                let matchesBuilding = false;
+
                 if (this.selectedBuildingId === 'all') {
-                    gross += parseFloat(p.amount || 0);
+                    matchesBuilding = true;
                 } else {
                     const lease = leaseMap[p.leaseId];
                     const unit = lease ? unitMap[lease.unitId] : null;
                     if (unit && unit.buildingId === parseInt(this.selectedBuildingId)) {
-                        gross += parseFloat(p.amount || 0);
+                        matchesBuilding = true;
+                    }
+                }
+
+                if (matchesBuilding) {
+                    gross += amount;
+                    if (p.type === 'Bank Transfer') {
+                        bankTotal += amount;
+                    } else {
+                        otherTotal += amount;
                     }
                 }
             }
@@ -203,6 +227,8 @@ export class Dashboard {
         const net = gross - maint;
 
         this.container.querySelector('#gross-revenue').textContent = this.formatCurrency(gross);
+        this.container.querySelector('#bank-transfer-total').textContent = this.formatCurrency(bankTotal);
+        this.container.querySelector('#other-methods-total').textContent = this.formatCurrency(otherTotal);
         this.container.querySelector('#total-maintenance').textContent = this.formatCurrency(maint);
         this.container.querySelector('#net-profit').textContent = this.formatCurrency(net);
     }
