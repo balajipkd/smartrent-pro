@@ -10,6 +10,48 @@ export class PaymentForm {
     this.render();
   }
 
+  saveDraft() {
+    if (this.editingId) return; // Don't save drafts when editing existing records
+    const formData = new FormData(this.form);
+    const draft = {};
+    formData.forEach((value, key) => {
+      draft[key] = value;
+    });
+    localStorage.setItem('smartRent_paymentDraft', JSON.stringify(draft));
+  }
+
+  loadDraft() {
+    const draftStr = localStorage.getItem('smartRent_paymentDraft');
+    if (!draftStr) return;
+
+    try {
+      const draft = JSON.parse(draftStr);
+      Object.keys(draft).forEach(key => {
+        const input = this.form.querySelector(`[name="${key}"]`);
+        if (input) {
+          if (input.type === 'date' && draft[key]) {
+            input.value = draft[key];
+          } else if (input.type === 'month' && draft[key]) {
+            input.value = draft[key];
+          } else {
+            input.value = draft[key];
+          }
+        }
+      });
+
+      // If tenant was in draft, trigger lease info load
+      if (draft.tenant) {
+        this.handleTenantChange(draft.tenant);
+      }
+    } catch (e) {
+      console.error('Failed to load payment draft', e);
+    }
+  }
+
+  clearDraft() {
+    localStorage.removeItem('smartRent_paymentDraft');
+  }
+
   async render() {
     this.container.innerHTML = `
       <div class="grid md:grid-cols-2 gap-6 items-start">
@@ -97,6 +139,12 @@ export class PaymentForm {
       this.resetForm();
     });
 
+    // Auto-save listeners
+    this.form.querySelectorAll('input, select, textarea').forEach(input => {
+      input.addEventListener('input', () => this.saveDraft());
+      input.addEventListener('change', () => this.saveDraft());
+    });
+
     // Global listener for Grid actions
     this.container.addEventListener('click', async (e) => {
       const btn = e.target.closest('button');
@@ -116,6 +164,7 @@ export class PaymentForm {
     });
 
     await this.loadTenants();
+    this.loadDraft();
     await this.renderPayments();
   }
 
@@ -315,6 +364,7 @@ export class PaymentForm {
     this.container.querySelector('#btn-cancel').classList.add('hidden');
     this.leaseInfoDiv.classList.add('hidden');
     this.tenantSelect.value = "";
+    this.clearDraft();
   }
 
   async handleSubmit(e) {
@@ -355,6 +405,7 @@ export class PaymentForm {
         this.form.reset();
         this.form.querySelector('#date').valueAsDate = new Date();
         this.leaseInfoDiv.classList.add('hidden');
+        this.clearDraft();
       }
       this.renderPayments();
     } catch (err) {

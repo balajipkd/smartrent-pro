@@ -10,6 +10,48 @@ export class MaintenanceForm {
     this.render();
   }
 
+  saveDraft() {
+    if (this.editingId) return;
+    const formData = new FormData(this.form);
+    const draft = {};
+    formData.forEach((value, key) => {
+      if (key !== 'receipt') { // Don't save file in localStorage
+        draft[key] = value;
+      }
+    });
+    localStorage.setItem('smartRent_maintenanceDraft', JSON.stringify(draft));
+  }
+
+  async loadDraft() {
+    const draftStr = localStorage.getItem('smartRent_maintenanceDraft');
+    if (!draftStr) return;
+
+    try {
+      const draft = JSON.parse(draftStr);
+      // Wait for targets to load if linkType is present
+      if (draft.linkType) {
+        const radio = this.form.querySelector(`input[name="linkType"][value="${draft.linkType}"]`);
+        if (radio) {
+          radio.checked = true;
+          await this.loadTargets();
+        }
+      }
+
+      Object.keys(draft).forEach(key => {
+        const input = this.form.querySelector(`[name="${key}"]`);
+        if (input && input.type !== 'radio') {
+          input.value = draft[key];
+        }
+      });
+    } catch (e) {
+      console.error('Failed to load maintenance draft', e);
+    }
+  }
+
+  clearDraft() {
+    localStorage.removeItem('smartRent_maintenanceDraft');
+  }
+
   async render() {
     this.container.innerHTML = `
       <div class="grid md:grid-cols-2 gap-6 items-start">
@@ -115,6 +157,12 @@ export class MaintenanceForm {
 
     this.container.querySelector('#btn-cancel').addEventListener('click', () => {
       this.resetForm();
+    });
+
+    // Auto-save listeners
+    this.form.querySelectorAll('input, select, textarea').forEach(input => {
+      input.addEventListener('input', () => this.saveDraft());
+      input.addEventListener('change', () => this.saveDraft());
     });
 
     // Global listener for Grid actions
@@ -300,6 +348,7 @@ export class MaintenanceForm {
     this.container.querySelector('#btn-cancel').classList.add('hidden');
     this.container.querySelector('#receipt-preview').classList.add('hidden');
     this.loadTargets(); // Reset targets to default 'unit'
+    this.clearDraft();
   }
 
   async handleSubmit(e) {
@@ -347,6 +396,7 @@ export class MaintenanceForm {
         alert('Expense Saved Successfully!');
         this.form.reset();
         this.dateInput.valueAsDate = new Date();
+        this.clearDraft();
       }
       this.renderExpenses();
     } catch (err) {

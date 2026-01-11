@@ -3,7 +3,7 @@ import { getDB } from '../db/database.js';
 export class Dashboard {
     constructor(container) {
         this.container = container;
-        this.mode = 'financial'; // 'calendar' or 'financial'
+        this.mode = 'calendar'; // 'calendar' or 'financial'
         // Default to current date's relevant year
         const now = new Date();
         this.currentDate = now;
@@ -223,6 +223,14 @@ export class Dashboard {
         }
 
         const tenantMap = {}; tenants.forEach(t => tenantMap[t.id] = t);
+        const leaseMap = {}; leases.forEach(l => leaseMap[l.id] = l);
+
+        // Map units to their leases and payments
+        const unitLeases = {};
+        leases.forEach(l => {
+            if (!unitLeases[l.unitId]) unitLeases[l.unitId] = [];
+            unitLeases[l.unitId].push(l);
+        });
 
         // Sort units numerically
         units.sort((a, b) => a.unitNumber.localeCompare(b.unitNumber, undefined, { numeric: true }));
@@ -272,50 +280,48 @@ export class Dashboard {
             for (const monthDate of months) {
                 const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
                 const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+                const monthPeriod = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}-01`;
 
-                const activeLease = leases.find(l => {
-                    return l.unitId === unit.id &&
-                        new Date(l.startDate) <= monthEnd &&
+                // Find active lease for this month to determine expected rent and coloring
+                const activeLease = (unitLeases[unit.id] || []).find(l => {
+                    return new Date(l.startDate) <= monthEnd &&
                         new Date(l.endDate) >= monthStart;
                 });
 
-                let cellTotal = 0;
+                // Find all payments for this unit in this month, across ALL its leases
+                const unitLeaseIds = (unitLeases[unit.id] || []).map(l => l.id);
+                const monthPayments = payments.filter(p => {
+                    if (!unitLeaseIds.includes(p.leaseId)) return false;
+
+                    if (p.paymentPeriod) {
+                        return p.paymentPeriod === monthPeriod;
+                    } else {
+                        const pDate = new Date(p.date);
+                        return pDate >= monthStart && pDate <= monthEnd;
+                    }
+                });
+
+                let cellTotal = monthPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
                 let cellColor = '';
                 let cellText = '-';
 
-                if (unit.unitNumber == 'D3') {
-                    console.log(activeLease);
-                }
-                if (activeLease) {
-                    // Use payment period to filter payments for this month
-                    const monthPeriod = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}-01`;
-                    // console.log(monthPeriod);
-                    const monthPayments = payments.filter(p => {
-                        // Check if payment is for this month using paymentPeriod
-                        // Fall back to date-based filtering for old records without paymentPeriod
-                        if (p.paymentPeriod) {
-                            return p.leaseId === activeLease.id && p.paymentPeriod === monthPeriod;
-                        } else {
-                            const pDate = new Date(p.date);
-                            return p.leaseId === activeLease.id && pDate >= monthStart && pDate <= monthEnd;
-                        }
-                    });
-
-                    cellTotal = monthPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
-
-                    if (cellTotal > 0) {
-                        cellText = this.formatCurrency(cellTotal);
+                if (cellTotal > 0) {
+                    cellText = this.formatCurrency(cellTotal);
+                    if (activeLease) {
                         if (cellTotal >= activeLease.rentAmount) {
-                            cellColor = 'style="background-color: #d1fae5; color: #065f46;"'; // green-100/green-800
+                            cellColor = 'style="background-color: #d1fae5; color: #065f46;"'; // green-100
                         } else {
-                            cellColor = 'style="background-color: #fef3c7; color: #92400e;"'; // yellow-100/yellow-800
+                            cellColor = 'style="background-color: #fef3c7; color: #92400e;"'; // yellow-100
                         }
                     } else {
-                        const now = new Date();
-                        if (monthEnd < now) {
-                            cellColor = 'style="background-color: #fee2e2; color: #991b1b;"'; // red-100/red-800
-                            cellText = '₹0';
-                        }
+                        // Payment exist but no lease defined for this period
+                        cellColor = 'style="background-color: #e0f2fe; color: #075985;"'; // blue-100
+                    }
+                } else if (activeLease) {
+                    const now = new Date();
+                    if (monthEnd < now) {
+                        cellColor = 'style="background-color: #fee2e2; color: #991b1b;"'; // red-100
+                        cellText = '₹0';
                     }
                 }
 

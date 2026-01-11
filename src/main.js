@@ -41,7 +41,13 @@ function renderLogin() {
     new Login(app, (user) => { });
 }
 
+let isAppRendered = false;
+let currentActiveView = null;
+
 function renderApp(user) {
+    if (isAppRendered) return;
+    isAppRendered = true;
+
     // Create layout structure
     app.innerHTML = `
         <div id="navbar-container"></div>
@@ -52,8 +58,10 @@ function renderApp(user) {
     const contentDiv = document.getElementById('content');
 
     // Initialize Navbar
+    const lastView = localStorage.getItem('smartRent_activeView') || 'dashboard';
+
     const navbar = new Navbar(navbarContainer, {
-        activeView: 'dashboard',
+        activeView: lastView,
         userEmail: user.email,
         onViewChange: (view) => {
             handleViewChange(view, contentDiv, navbar);
@@ -63,11 +71,15 @@ function renderApp(user) {
         }
     });
 
-    // Default to Dashboard
-    new Dashboard(contentDiv);
+    // Render initial view
+    handleViewChange(lastView, contentDiv, navbar);
 }
 
 function handleViewChange(view, contentDiv, navbar) {
+    if (view === currentActiveView) return;
+    currentActiveView = view;
+
+    localStorage.setItem('smartRent_activeView', view);
     switch (view) {
         case 'dashboard':
             new Dashboard(contentDiv);
