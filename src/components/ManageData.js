@@ -260,6 +260,7 @@ export class ManageData {
                 { id: 'unitName', name: 'Unit' },
                 { id: 'tenantName', name: 'Tenant' },
                 { id: 'rentAmount', name: 'Rent', formatter: (cell) => html(`<span class="text-green-400 font-mono">₹${cell}</span>`) },
+                { id: 'waterCharge', name: 'Water', formatter: (cell) => html(`<span class="text-blue-400 font-mono">₹${cell || 0}</span>`) },
                 { id: 'createdAt', name: 'Created', formatter: (cell) => this.formatDate(cell) }
             ];
 
@@ -294,9 +295,15 @@ export class ManageData {
                                 <input type="date" name="endDate" required class="w-full" />
                             </div>
                         </div>
-                        <div>
-                             <label class="text-xs text-gray-600 mb-1 block">Rent Amount (₹)</label>
-                             <input type="number" name="rentAmount" required placeholder="0.00" class="w-full" />
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                 <label class="text-xs text-gray-600 mb-1 block">Rent Amount (₹)</label>
+                                 <input type="number" name="rentAmount" required placeholder="0.00" class="w-full" />
+                            </div>
+                            <div class="flex-1">
+                                 <label class="text-xs text-gray-600 mb-1 block">Water Charge (₹)</label>
+                                 <input type="number" name="waterCharge" min="0" step="0.01" placeholder="0.00" class="w-full" />
+                            </div>
                         </div>
                          <div class="flex gap-2 mt-2">
                             <button type="submit" class="btn btn-primary flex-1">${this.editingId ? 'Update' : 'Create'}</button>
@@ -317,7 +324,8 @@ export class ManageData {
                     tenantId: parseInt(formData.get('tenantId')),
                     startDate: formData.get('startDate'),
                     endDate: formData.get('endDate'),
-                    rentAmount: parseFloat(formData.get('rentAmount'))
+                    rentAmount: parseFloat(formData.get('rentAmount')),
+                    waterCharge: parseFloat(formData.get('waterCharge')) || 0
                 };
             });
             contentDiv.querySelector('#table-wrapper').appendChild(renderGrid(columns, enrichedLeases, 'leases'));

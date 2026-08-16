@@ -2,6 +2,7 @@ import { initDB, seedDatabase, supabase } from './db/database.js';
 import { MaintenanceForm } from './components/MaintenanceForm.js';
 import { Dashboard } from './components/Dashboard.js';
 import { PaymentForm } from './components/PaymentForm.js';
+import { PaymentEditor } from './components/PaymentEditor.js';
 import { ManageData } from './components/ManageData.js';
 import { Login } from './components/Login.js';
 import { Navbar } from './components/Navbar.js';
@@ -89,6 +90,9 @@ function handleViewChange(view, contentDiv, navbar) {
             break;
         case 'payment-entry':
             new PaymentForm(contentDiv);
+            break;
+        case 'payment-editor':
+            new PaymentEditor(contentDiv);
             break;
         case 'maintenance':
             new MaintenanceForm(contentDiv);

@@ -90,6 +90,11 @@ export class PaymentForm {
             </div>
 
             <div class="flex flex-col">
+                <label for="water" class="text-sm font-medium text-gray-700 mb-1.5">Water Charge (₹)</label>
+                <input type="number" id="water" name="water" min="0" step="0.01" placeholder="0.00" class="" />
+            </div>
+
+            <div class="flex flex-col">
                 <label for="type" class="text-sm font-medium text-gray-700 mb-1.5">Payment Method</label>
                 <select id="type" name="type" class="">
                 <option value="Bank Transfer">Bank Transfer</option>
@@ -205,9 +210,10 @@ export class PaymentForm {
       this.leaseInfoDiv.querySelector('#rent-display').textContent = `₹${activeLease.rentAmount.toFixed(2)}`;
       this.leaseInfoDiv.classList.remove('hidden');
 
-      // Auto-fill amount only if adding new
+      // Auto-fill amount and water charge only if adding new
       if (!this.editingId) {
         this.form.querySelector('#amount').value = activeLease.rentAmount;
+        this.form.querySelector('#water').value = activeLease.waterCharge || 0;
       }
 
       this.form.dataset.leaseId = activeLease.id;
@@ -242,6 +248,7 @@ export class PaymentForm {
         tenantName,
         unitName, // Add Unit
         p.amount,
+        p.water || 0, // Water charge
         p.type, // Method
         p.notes || '-', // Notes
         p.createdAt ? new Date(p.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '-', // Add Created
@@ -263,6 +270,7 @@ export class PaymentForm {
           { name: 'Tenant', width: '120px' },
           { name: 'Unit', width: '80px' },
           { name: 'Amount', width: '100px', formatter: (cell) => `₹${cell}` },
+          { name: 'Water', width: '90px', formatter: (cell) => `₹${cell}` },
           { name: 'Method', width: '100px' },
           { name: 'Notes', width: '150px' },
           { name: 'Created', width: '140px' },
@@ -301,6 +309,7 @@ export class PaymentForm {
           { name: 'Tenant', width: '120px' },
           { name: 'Unit', width: '80px' }, // Add Unit Col
           { name: 'Amount', width: '100px', formatter: (cell) => `₹${cell}` },
+          { name: 'Water', width: '90px', formatter: (cell) => `₹${cell}` },
           { name: 'Method', width: '100px' },
           { name: 'Notes', width: '150px' },
           { name: 'Created', width: '140px' }, // Add Created Col
@@ -337,6 +346,7 @@ export class PaymentForm {
     this.form.querySelector('#date').value = payment.date;
     this.form.querySelector('#paymentPeriod').value = payment.paymentPeriod || '';
     this.form.querySelector('#amount').value = payment.amount;
+    this.form.querySelector('#water').value = payment.water || 0;
     this.form.querySelector('#type').value = payment.type;
     this.form.querySelector('#notes').value = payment.notes;
 
@@ -383,6 +393,7 @@ export class PaymentForm {
       date: formData.get('date'),
       paymentPeriod: `${formData.get('paymentPeriod')}-01`,
       amount: parseFloat(formData.get('amount')),
+      water: parseFloat(formData.get('water')) || 0,
       type: formData.get('type'),
       notes: formData.get('notes'),
       createdAt: new Date().toISOString()
