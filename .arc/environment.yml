@@ -1,0 +1,7 @@
+# Active ARC LocationCode (tenant) selected in the ARC SharePoint extension.
+# Auto-managed — pick a location via the status bar or the
+# "ARC SharePoint: Select Location Code" command. Sent to the API as the
+# X-Environment-Selected header and validated against your token roles.
+locationCode: ARC_Brazil_Curitiba_EBM_E2ECS
+scope: team
+docIndexUpload: off

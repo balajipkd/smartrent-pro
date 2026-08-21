@@ -38,6 +38,9 @@ export class Navbar {
                             <button data-view="payment-editor" class="nav-btn px-3 lg:px-4 py-2 rounded-lg transition-colors text-sm">
                                 Payment Editor
                             </button>
+                            <button data-view="payment-summary" class="nav-btn px-3 lg:px-4 py-2 rounded-lg transition-colors text-sm">
+                                Payment Summary
+                            </button>
                             <button data-view="maintenance" class="nav-btn px-3 lg:px-4 py-2 rounded-lg transition-colors text-sm">
                                 Maintenance
                             </button>
@@ -72,6 +75,9 @@ export class Navbar {
                     </button>
                     <button data-view="payment-editor" class="mobile-nav-btn w-full px-4 py-2.5 rounded-lg transition-colors text-left">
                         Payment Editor
+                    </button>
+                    <button data-view="payment-summary" class="mobile-nav-btn w-full px-4 py-2.5 rounded-lg transition-colors text-left">
+                        Payment Summary
                     </button>
                     <button data-view="maintenance" class="mobile-nav-btn w-full px-4 py-2.5 rounded-lg transition-colors text-left">
                         Maintenance Entry

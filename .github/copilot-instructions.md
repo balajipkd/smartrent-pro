@@ -33,7 +33,17 @@ SmartRent Pro is a property management application for Indian landlords to track
 
 ### View Routing
 - The router is in `src/main.js` — a simple `switch` on a `view` string.
+- Views: `dashboard`, `manage-data`, `payment-entry`, `payment-editor`, `payment-summary`, `maintenance`.
 - To add a new view: add a case in `handleViewChange()`, add a nav button in `Navbar.js`, and create a new component class.
+
+### Components (`src/components/`)
+- `Dashboard.js` — financial overview, unit status grid, rent matrix, tenant timeline
+- `ManageData.js` — tabbed CRUD for buildings, units, tenants, leases
+- `PaymentForm.js` — record rent payments (`payment-entry` view)
+- `PaymentEditor.js` — unit-centric editor to manage leases and their payments inline, with water charge auto-load (`payment-editor` view)
+- `PaymentSummary.js` — read-only breakdown of received amounts by tenant, unit, and month, filterable by payment method and building (`payment-summary` view)
+- `MaintenanceForm.js` — log maintenance expenses (`maintenance` view)
+- `Navbar.js`, `Login.js` — navigation and auth
 
 ---
 
@@ -48,6 +58,11 @@ SmartRent Pro is a property management application for Indian landlords to track
 - Always display amounts with the Rupee symbol: `₹`
 - Format numbers with `toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })`
 - Financial year runs **April–March** (FY 2025 = Apr 2025 – Mar 2026)
+
+### Water Charge
+- `leases.water_charge` stores the recurring monthly water charge agreed in the lease
+- `payments.water` stores the water portion of a specific payment
+- The lease `water_charge` is auto-loaded into the payment as a suggested value; it is only persisted once the payment is saved
 
 ### Dates
 - Store dates as ISO strings (`YYYY-MM-DD`) in the DB
@@ -73,8 +88,8 @@ SmartRent Pro is a property management application for Indian landlords to track
 | `buildings` | `id`, `name`, `address`, `show_when_dashboard_is_loaded` |
 | `units` | `id`, `building_id`, `unit_number`, `status` (Vacant/Occupied/Maintenance) |
 | `tenants` | `id`, `name`, `contact`, `email` |
-| `leases` | `id`, `unit_id`, `tenant_id`, `rent_amount`, `start_date`, `end_date` |
-| `payments` | `id`, `lease_id`, `amount`, `type`, `payment_period`, `date`, `notes` |
+| `leases` | `id`, `unit_id`, `tenant_id`, `rent_amount`, `water_charge`, `start_date`, `end_date` |
+| `payments` | `id`, `lease_id`, `amount`, `water`, `type`, `payment_period`, `date`, `notes` |
 | `expenses` | `id`, `link_type` (unit/building), `link_target`, `category`, `amount`, `vendor`, `status`, `receipt_image`, `notes`, `date` |
 
 ---

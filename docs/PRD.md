@@ -110,6 +110,7 @@ SmartRent Pro provides a cloud-synced, mobile-friendly property management tool 
 | FR-05.1 | User can create a lease linking a tenant to a unit with rent amount and date range |
 | FR-05.2 | User can edit or delete leases |
 | FR-05.3 | Active leases determine which tenants appear in the payment form |
+| FR-05.4 | A lease can store a recurring monthly water charge (`water_charge`) that is auto-loaded into payments |
 
 ### FR-06: Payment Entry
 | ID | Requirement |
@@ -120,6 +121,23 @@ SmartRent Pro provides a cloud-synced, mobile-friendly property management tool 
 | FR-06.4 | Lease details (unit number, monthly rent) auto-fill when a tenant is selected |
 | FR-06.5 | Incomplete form data is auto-saved as a draft in localStorage |
 | FR-06.6 | Payment history is displayed in a searchable, paginated Grid.js table |
+| FR-06.7 | A payment can record a separate water charge component (`water`); the lease's water charge is suggested and only persisted when the payment is saved |
+
+### FR-06A: Payment Editor (Unit-Centric)
+| ID | Requirement |
+|---|---|
+| FR-06A.1 | User can select a unit and manage its leases and payments inline in one screen (`payment-editor` view) |
+| FR-06A.2 | Water charge auto-loads from the lease into each payment row; unsaved auto-loaded values are visually distinguished (amber) from saved values (green) and empty values (blue) |
+| FR-06A.3 | User can add, edit, and delete payments directly within the unit context |
+| FR-06A.4 | Payments can be sorted by period (newest/oldest first) |
+
+### FR-06B: Payment Summary
+| ID | Requirement |
+|---|---|
+| FR-06B.1 | User can view a read-only breakdown of received amounts by tenant, unit, and month (`payment-summary` view) |
+| FR-06B.2 | Summary can be filtered by payment method and by building |
+| FR-06B.3 | Summary can be sorted by month (newest or oldest first) |
+| FR-06B.4 | User-generated values are HTML-escaped before rendering |
 
 ### FR-07: Maintenance & Expense Tracking
 | ID | Requirement |
@@ -241,6 +259,8 @@ main.js  (Entry Point + Auth Router)
     ├── Dashboard.js  — Financial overview, unit grid, rent matrix, timeline
     ├── ManageData.js — CRUD for buildings, units, tenants, leases (tabbed)
     ├── PaymentForm.js — Record rent payments, payment history grid
+    ├── PaymentEditor.js — Unit-centric lease/payment editor with water charge auto-load
+    ├── PaymentSummary.js — Read-only received-amount breakdown by tenant/unit/month
     └── MaintenanceForm.js — Log expenses, expense history grid
          │
          └── database.js (DB Adapter)
@@ -308,6 +328,7 @@ units
 | `unit_id` | FK → units | Leased unit |
 | `tenant_id` | FK → tenants | Lessee |
 | `rent_amount` | NUMERIC | Monthly rent in INR |
+| `water_charge` | NUMERIC | Recurring monthly water charge in INR (default 0); auto-loaded into payments |
 | `start_date` | DATE | Lease start |
 | `end_date` | DATE | Lease end (nullable = ongoing) |
 | `created_at` | TIMESTAMPTZ | Auto-generated |
@@ -318,6 +339,7 @@ units
 | `id` | UUID / SERIAL | Primary key |
 | `lease_id` | FK → leases | Associated lease |
 | `amount` | NUMERIC | Amount received in INR |
+| `water` | NUMERIC | Water charge component of the payment in INR (default 0) |
 | `type` | TEXT | Bank Transfer / Cash / Check / Credit Card / Other |
 | `payment_period` | DATE | First day of billing month (e.g., 2026-01-01) |
 | `date` | DATE | Date payment was received |
